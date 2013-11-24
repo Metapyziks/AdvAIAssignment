@@ -1,8 +1,9 @@
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,10pt]{article}
 
 \usepackage{lipsum}
 \usepackage[english]{babel}
-\usepackage[margin=20mm]{geometry}
+\usepackage[margin=15mm]{geometry}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{subfigure}
 
@@ -15,18 +16,14 @@
 
 \section{Problem Specification}
 \subsection{Overview}
-\subsubsection{World}
+\paragraph{World}
 The task is a simple turn-based game within a tile based world, where two or more teams of bots compete for survival. Each team starts with one or more \emph{home} tiles, upon which a bot belonging to that team begins. Every remaining tile in the world may be a solid \emph{wall}, a \emph{resource} item, a \emph{bot}, or \emph{empty}. The world is a two dimensional grid of fixed dimensions, and has the topology of the surface of a torus (travelling off one side of the grid will bring you to the opposite side). The world is initially unknown to players of the game, but at the start of each turn every player is given the state of previously undiscovered tiles that are within a certain fixed \emph{vision radius} of any agent on their team. The locations of resources, along with the positions, team affiliation and direction of agents within the vision radius is also given before each turn.
-
-\subsubsection{Bots}
-
-Bots have a \emph{direction} property, which may be any one of the cardinal directions (\emph{north}, \emph{east}, \emph{south}, or \emph{west}). Each turn, each team decides a single action to perform with each bot belonging to them. This action may be to rotate the bot \emph{left} or \emph{right} (so a bot that was facing east which turns left will now face north), to \emph{move} one tile in the direction it is currently facing (unless a wall is in the destination tile, in which case it does not move), or to \emph{pass} and do nothing. After each team decides on a set of moves, all the bots commit to their assigned instruction simultaneously. If any two or more bots occupy the same tile they are removed from the world before the next turn. Also, a bot is removed if it is neighbouring another bot of a different team that is facing it.
 
 \begin{figure}[ht]
   \centering
   \mbox{
     \subfigure
-      [The purple bot moves to eliminate the pink bot.]
+      [The blue bot moves to eliminate the pink bot.]
       {\includegraphics[width=0.45\linewidth]{kill}}
     \quad
     \subfigure
@@ -34,10 +31,14 @@ Bots have a \emph{direction} property, which may be any one of the cardinal dire
       {\includegraphics[width=0.45\linewidth]{mutual}}
   }
   \caption{Demonstrations of the two rules for bot elimination.}
+  \vspace{-5mm}
 \end{figure}
 
-\subsubsection{Resources}
+\paragraph{Bots}
+Bots have a \emph{direction} property, which may be any one of the cardinal directions (\emph{north}, \emph{east}, \emph{south}, or \emph{west}). Each turn, each team decides a single action to perform with each bot belonging to them. This action may be to rotate the bot \emph{left} or \emph{right} (so a bot that was facing east which turns left will now face north), to \emph{move} one tile in the direction it is currently facing (unless a wall is in the destination tile, in which case it does not move), or to \emph{pass} and do nothing. After each team decides on a set of moves, all the bots commit to their assigned instruction simultaneously. If any two or more bots occupy the same tile they are removed from the world before the next turn. Also, a bot is removed if it is neighbouring another bot of a different team that is facing it.
 
+
+\paragraph{Resources}
 Resources are items that appear at regular intervals in the world on randomly selected empty tiles. These are initially stationary, but if a bot appears on a neighbouring tile and faces the resource, the bot begins to \emph{carry} the resource which will attempt to remain one tile in front of the carrying bot. If the carrying bot moves forward, the resource is \emph{pushed} in the direction the bot moved by one tile. If the bot turns, the resource will move to whichever tile the bot is now facing. However, if the destination tile for the resource when either pushed or turned isn't vacant, the resource is removed from the world. Finally, if the resource is moved to a home tile, a new bot belonging to the home tile's corresponding team is created in its place.
 
 \begin{figure}[ht]
@@ -52,10 +53,45 @@ Resources are items that appear at regular intervals in the world on randomly se
       {\includegraphics[width=0.45\linewidth]{destroy}}
   }
   \caption{Demonstrations of resource consumption and destruction.}
+  \vspace{-5mm}
 \end{figure}
 
-\subsubsection{Win Condition \& Goals}
+\paragraph{Solution Form \& Interfaces}
+Each team will have a single program that controls all of the bots on their team. Each program is initially given the dimensions of the world, number of teams, vision radius and allowed time per turn over standard input, and then at the start of each turn they provided with given the tile, resource and bot information as previously specified. Each team's program is then expected to produce an action for each bot over standard output, and upon the arrival of all instructions the game moves to the next turn. If any team's program fails to produce its set of actions before the allotted time has elapsed, all bots belonging to that team are eliminated and its program terminated. Each controller program may be implemented in any language that supports standard input and output operations.
 
-The game lasts until either a predetermined turn limit is reached, or only bots belonging to one team remain. When the game ends, whichever team has the most remaining bots is declared the winner. The aim of the game is therefore to try and eliminate as many bots belonging to opposing teams as possible, while attempting to transport resources back to a home tile owned by your team and preventing other teams from doing so. 
+\paragraph{End Conditions \& Goals}
+The game lasts until either a predetermined turn limit is reached, or only bots belonging to one team remain. When the game ends, whichever team has the most remaining bots is declared the winner. The aim of the game is therefore to try and eliminate as many bots belonging to opposing teams as possible, while attempting to transport resources back to a home tile owned by your team and preventing other teams from doing so.
+
+\subsection{Task Environment Identification}
+A useful initial step when designing any kind of system involving agents is to classify the environment in terms of how it is perceived by and reacts to agents, and to recognise exactly which behaviours should be encouraged in agents. These properties of the task are usually known as the \emph{performance measure}, \emph{environment properties}, \emph{actuators} and \emph{sensors}, or the \emph{PEAS}, as discussed by Norvig and Russel in Artificial Intelligence: A Modern Approach\cite{norvig10}.
+
+\paragraph{Performance Measure}
+As this is a cooperative system (at least with respect to the bots belonging to one team), where the cooperating bots reside in the same program, performance may be measured for the team as a whole and not for each bot independently. Each team is attempting to maximise their number of active bots, while reducing the number of bots in opposing teams. This can be expressed as a ratio of active bots belonging to the measured team against the total number of active bots. However, this would suggest that a scenario where 5 bots are split between three teams $(A, B, C)$ using the distribution $(2, 2, 1)$ is equivalent to the distribution $(2, 3, 0)$ for team $A$. This should not be the case, as in the first scenario team $A$ is tied in first place with team $B$, but in the second scenario team $A$ is in second place and so should have a lower performance measure. One possible revised performance measure expression that resolves this is the following:
+
+\begin{figure}[ht]
+  \centering
+  \begin{minipage}{0.8\textwidth}
+    $$
+      \text{performance}(\text{team}) = \frac
+        {\left|\text{bots} \cap \text{team}\right|^2}
+        {\sum_{t \in \text{teams}} \left|\text{bots} \cap \text{t}\right|^2}
+    $$
+    \caption{A performance measure expression that takes into account the number of bots belonging to opposing teams.}
+  \end{minipage}
+\end{figure}
+
+This performance measure can differentiate between distributions of agents between teams where the original expression could not, so eliminating bots from a larger (and therefore more threatening) opposing team would provide more utility than doing so from a small one. Maximizing this score will increase the probability of winning the game, and in fact as soon as the performance score for a given team reaches $1.0$ that team must win, because all opposing agents have been eliminated.
+
+\paragraph{Environment Properties}
+Using the definitions provided by Russel and Norvig\cite{norvig10}, the environment is \emph{partially observable} due to how only the contents of tiles near to bots are revealed to the team each bot belongs to. Naturally, it is a \emph{multi-agent} system that is both \emph{cooperative} (between agents belonging to the same team) and \emph{competitive} (between agents belonging to distinct teams). The environment is slightly \emph{stochastic} due to the random distribution of packets over time, and \emph{uncertain} because of its stochastic nature, the presence of other agents, and because it is partially observable. Turns are \emph{sequential} rather than episodic because each choice may affect every following one.
+
+\begin{thebibliography}{9}
+  \bibitem{norvig10}
+    Stuart Russell \& Peter Norvig,
+    \emph{Artificial Intelligence: A Modern Approach}. \newline
+    Pearson Education Inc.,
+    3rd Edition,
+    2010.
+\end{thebibliography}
 
 \end{document}

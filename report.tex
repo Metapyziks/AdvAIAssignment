@@ -91,54 +91,73 @@ Using the definitions provided by Russel and Norvig\cite{norvig10}, the environm
 Each team can interact with the environment by selecting an action from the set of allowed actions for each of their bots. Percepts include several elements; first is a subset of previously undiscovered tiles revealing their state (either empty, a wall, or a home tile for a specified team), then the locations of visible bots along with their team and the direction they are facing, and finally the locations of visible resources.
 
 \subsection{Scenarios}
-A solution for this task should be able to act in the ways suggested in the following situations. Of course, two or more of the opportunities detailed here can crop up simultaneously, so the solution should evaluate which is expected to be more beneficial to pursue. Many more scenarios may emerge that do not fit into any of these templates, so the solution should account for unexpected events also.
+A solution for this task should be able to act in the ways suggested in the following situations. Of course, two or more of the opportunities detailed here can crop up simultaneously, so the solution should evaluate which is expected to be more beneficial to pursue. Many more scenarios may emerge that do not fit into any of these templates, so the solution should account for unexpected events also. In the following scenarios, `bot' will refer to bots controlled by the solution program, and `opponents' will refer to the rest of the bots.
 
-\vspace{3mm}
-\noindent
-\begin{minipage}[t]{0.5\textwidth}
-\subsubsection{Capture Resource}
-\begin{enumerate}
-\item Resource seen near bot
-\item Evaluated to be capturable without risk
-\item Bot navigates to resource
-\item Bot navigates back to a home tile
-\item Resource is not pushed into walls / bots
-\item Resource reaches home tile
-\end{enumerate}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\subsubsection{Hinder Opponent Resource Capture}
-\begin{enumerate}
-\item Resource seen near bot
-\item Evaluated to be easier for an opponent to capture
-\item Bot navigates to resource
-\item Nearby wall tile found
-\item Bot pushes resource into wall
-\item Resource is destroyed
-\end{enumerate}
-\end{minipage}
+\newcommand{\scenario}[4]{
+  \subsubsection{#1}
+  \paragraph{Description}
+  #2
 
-\vspace{5mm}
-\noindent
-\begin{minipage}[t]{0.5\textwidth}
-\subsubsection{Eliminate Opponent}
-\begin{enumerate}
-\item Several bots encounter single opponent
-\item Bots approach opponent when safe
-\item Opponent becomes blocked
-\item Bots await opportunity to safely strike
-\end{enumerate}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\subsubsection{Defend Trapped Bot}
-\begin{enumerate}
-\item Bot is blocked by opponents
-\item Another bot approaches a blocking opponent
-\item Blocking opponent is vulnerable from behind
-\item Approaching bot strikes opponent
-\end{enumerate}
-\end{minipage}
+  \vspace{-3mm}
+  \paragraph{Start Condition}
+  #3
 
+  \vspace{2mm}
+  \begin{center}
+  \begin{tabular}{r l l l}
+    ~ & \textbf{Steps} & \textbf{Functionality} & \textbf{Data} \\
+    #4
+  \end{tabular}
+  \end{center}
+}
+
+\scenario{Capture Resource}{
+  A resource is identified as being easy to capture, and is escorted to a home tile by a bot.
+}{
+  Resource seen near bot and risk is estimated to be below some threshold.
+}{
+  1. & Resource seen near bot & World Observation & Resources \\
+  2. & Evaluated to be capturable without risk & Risk Evaluation & Opponents, World Tiles \\
+  3. & Bot navigates to resource & Path Finding & World Tiles \\
+  4. & Bot navigates back to a home tile & Path Finding & World Tiles \\
+  5. & Resource is not pushed into walls / bots & World Observation & World Tiles \\
+}
+
+\scenario{Hinder Opponent Resource Capture}{
+  A resource is identified as being easier for an opposing team to capture, and is removed by being pushed into a wall to hinder their efforts.
+}{
+  Resource seen near bot and risk is estimated to be below some threshold for some opposing team.
+}{
+  1. & Resource seen near bot & World Observation & Resources \\
+  2. & Evaluated to be easier for an opponent to capture & Risk Evaluation & Opponents, World Tiles \\
+  3. & Bot navigates to resource & Path Finding & World Tiles \\
+  4. & Nearby wall tile found & World Observation & World Tiles \\
+  5. & Bot pushes resource into wall & Path Finding & World Tiles \\
+}
+
+\scenario{Eliminate Opponent}{
+  A vulnerable opponent is forced into an inescapable position, and is eliminated when the potential risk is deemed low enough.
+}{
+  A single opponent shares a locality with several bots on this team.
+}{
+  1. & Several bots encounter single opponent & World Observation & Opponents \\
+  2. & Bots approach opponent when safe & Risk Evaluation & Opponents \\
+  3. & Opponent becomes blocked & Opponent Consideration & Opponents, World Tiles \\
+  4. & Bots await opportunity to safely strike & Risk Evaluation & Opponents
+}
+
+\scenario{Defend Trapped Bot}{
+  A vulnerable bot is surrounded by opponents, but other bots arrive to assist.
+}{
+  A single bot shares a locality with several opponents, with other bots nearby to assist.
+}{
+  1. & Bot is blocked by opponents & Opponent Consideration & Opponents, World Tiles \\
+  2. & Another bot approaches a blocking opponent & Path Finding & Opponents, World Tiles \\
+  3. & Bot waits until opponent is vulnerable & Risk Evaluation & Opponents \\
+  4. & Approaching bot strikes opponent & World Observation & Opponents \\
+}
+
+\newpage
 \section{Agent Role Division}
 \vspace{-5mm}
 \begin{figure}[ht]
@@ -147,19 +166,35 @@ A solution for this task should be able to act in the ways suggested in the foll
   \caption{Diagram showing the main interactions between the three proposed agent classes.}
   \vspace{-5mm}
 \end{figure}
+\vspace{5mm}
 
+\paragraph{Bot Agent}
+The most obvious recognisable agent class in the system is the \emph{Bot} agent. Each bot belonging to the team would have a separate Bot agent assigned to it, which would control self preservation of that bot and the following of any plans assigned to that bot by other agents. The Bot agent would delegate planning and most deliberation to other agents in the system, and mostly follow their instructions with some reactive mechanisms for avoiding danger. Because of this, a subsumptive architecture\cite{brooks90} would be a good fit for the overall design of the agent.
 
+\paragraph{Cartographer Agent}
+A solution for this task should attempt to record the structure of the environment to be recalled when previously visible aspects of it are hidden. It would be wasteful for each Bot agent to hold a separate representation of the world, and so a static structure external to them would be best. While maintaining this structure is reasonably simple, an effort should be made by the solution to attempt to explore regions of the environment that were previously undiscovered, or to revisit areas to keep an eye on enemy activity. For that, a \emph{Cartographer} agent could attempt to decide which areas are most worth visiting, and could distribute exploration tasks among Bot agents. The Cartographer would also be in charge of maintaining the world representation, and so use relevant percepts to update the structure. It would also service requests by other agents as to the state of some region of the environment. Finally, the agent could plan which resources are worth capturing or destroying, and assign agents to do either while avoiding assigning multiple agents to perform the same task. The agent would have several competing goals to achieve at any time, and should decide which to commit to. It is for this reason a Belief-Desires-Intentions architecture may be most fitting.
+
+\paragraph{Tactician Agent}
+The remaining functionality not captured by the first two agent classes relate to interaction with enemy bots, and so a \emph{Tactician} agent may be constructed to deal with hindering, avoiding or eliminating opposing bots. While the Cartographer will retain the last known locations of enemy bots, the Tactician will query that information to be used when deliberating actions.
+
+\section{Bot Agent (Subsumptive)}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\linewidth]{bot}
+  \begin{minipage}[t]{0.8\textwidth}
+    \caption{A breakdown of the Bot agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines.}
+  \end{minipage}
+\end{figure}
 
 \section{Cartographer Agent (BDI)}
-As the world is partially observable, its state must be recorded and updated so that static tiles that are no longer visible may be remembered. It would be wasteful for every bot to hold a separate representation of the world, so a distinct agent should be implemented whose main purpose is to receive world information to be stored and recalled. This agent would be able to provide several services for other agents in the system, such as to plan a path between two locations in the world, identify which areas of the world are worth exploring, and decide whether it would be worth attempting to capture a specified resource.
-
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.7\linewidth]{cartographer}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Cartographer agent's main goals into sub-goals, with possible conflicts of interest represented by dashed lines.}
+    \caption{A breakdown of the Cartographer agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines.}
   \end{minipage}
 \end{figure}
+
 
 \begin{thebibliography}{9}
   \bibitem{norvig10}
@@ -168,6 +203,19 @@ As the world is partially observable, its state must be recorded and updated so 
     Pearson Education Inc.,
     3rd Edition,
     2010.
+
+  \bibitem{brooks90}
+    Rodney Brooks,
+    \emph{Elephants Don't Play Chess}. \newline
+    Robotics and Autonomous Systems,
+    Volume 6,
+    1990.
+
+  \bibitem{rao}
+    Anand Rao and Michael Georgeff,
+    \emph{BDI Agents: From Theory to Practice}. \newline
+    Proceedings of the First International Conference on Multi-Agent Systems,
+    1995.
 \end{thebibliography}
 
 \end{document}

@@ -90,16 +90,76 @@ Using the definitions provided by Russel and Norvig\cite{norvig10}, the environm
 \paragraph{Actuators and Sensors}
 Each team can interact with the environment by selecting an action from the set of allowed actions for each of their bots. Percepts include several elements; first is a subset of previously undiscovered tiles revealing their state (either empty, a wall, or a home tile for a specified team), then the locations of visible bots along with their team and the direction they are facing, and finally the locations of visible resources.
 
-\section{Agent Roles}
+\subsection{Scenarios}
+A solution for this task should be able to act in the ways suggested in the following situations. Of course, two or more of the opportunities detailed here can crop up simultaneously, so the solution should evaluate which is expected to be more beneficial to pursue. Many more scenarios may emerge that do not fit into any of these templates, so the solution should account for unexpected events also.
+
+\vspace{3mm}
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+\subsubsection{Capture Resource}
+\begin{enumerate}
+\item Resource seen near bot
+\item Evaluated to be capturable without risk
+\item Bot navigates to resource
+\item Bot navigates back to a home tile
+\item Resource is not pushed into walls / bots
+\item Resource reaches home tile
+\end{enumerate}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\subsubsection{Hinder Opponent Resource Capture}
+\begin{enumerate}
+\item Resource seen near bot
+\item Evaluated to be easier for an opponent to capture
+\item Bot navigates to resource
+\item Nearby wall tile found
+\item Bot pushes resource into wall
+\item Resource is destroyed
+\end{enumerate}
+\end{minipage}
+
+\vspace{5mm}
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+\subsubsection{Eliminate Opponent}
+\begin{enumerate}
+\item Several bots encounter single opponent
+\item Bots approach opponent when safe
+\item Opponent becomes blocked
+\item Bots await opportunity to safely strike
+\end{enumerate}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\subsubsection{Defend Trapped Bot}
+\begin{enumerate}
+\item Bot is blocked by opponents
+\item Another bot approaches a blocking opponent
+\item Blocking opponent is vulnerable from behind
+\item Approaching bot strikes opponent
+\end{enumerate}
+\end{minipage}
+
+\section{Agent Role Division}
+\vspace{-5mm}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.9\linewidth]{interaction}
-  \caption{Diagram showing the interactions between the three proposed agent classes.}
+  \includegraphics[width=0.8\linewidth]{interaction}
+  \caption{Diagram showing the main interactions between the three proposed agent classes.}
   \vspace{-5mm}
 \end{figure}
 
-\subsection{Cartographer}
-As the world is partially observable, its state must be recorded and updated so that static tiles that are no longer visible may be remembered. It would be wasteful for every bot to hold a separate representation of the world, so a distinct agent should be implemented whose main purpose is to receive world information to be stored and recalled. This agent would be able to provide several services for other agents in the system, such as to plan a path between two locations in the world, decide 
+
+
+\section{Cartographer Agent (BDI)}
+As the world is partially observable, its state must be recorded and updated so that static tiles that are no longer visible may be remembered. It would be wasteful for every bot to hold a separate representation of the world, so a distinct agent should be implemented whose main purpose is to receive world information to be stored and recalled. This agent would be able to provide several services for other agents in the system, such as to plan a path between two locations in the world, identify which areas of the world are worth exploring, and decide whether it would be worth attempting to capture a specified resource.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\linewidth]{cartographer}
+  \begin{minipage}[t]{0.8\textwidth}
+    \caption{A breakdown of the Cartographer agent's main goals into sub-goals, with possible conflicts of interest represented by dashed lines.}
+  \end{minipage}
+\end{figure}
 
 \begin{thebibliography}{9}
   \bibitem{norvig10}

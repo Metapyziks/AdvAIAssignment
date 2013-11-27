@@ -162,7 +162,7 @@ A solution for this task should be able to act in the ways suggested in the foll
 \vspace{-5mm}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.8\linewidth]{interaction}
+  \includegraphics[width=0.9\linewidth]{interaction}
   \caption{Diagram showing the main interactions between the three proposed agent classes.}
   \vspace{-5mm}
 \end{figure}
@@ -172,30 +172,32 @@ A solution for this task should be able to act in the ways suggested in the foll
 The most obvious recognisable agent class in the system is the \emph{Bot} agent. Each bot belonging to the team would have a separate Bot agent assigned to it, which would control self preservation of that bot and the following of any plans assigned to that bot by other agents. The Bot agent would delegate planning and most deliberation to other agents in the system, and mostly follow their instructions with some reactive mechanisms for avoiding danger. Because of this, a subsumptive architecture\cite{brooks90} would be a good fit for the overall design of the agent.
 
 \paragraph{Cartographer Agent}
-A solution for this task should attempt to record the structure of the environment to be recalled when previously visible aspects of it are hidden. It would be wasteful for each Bot agent to hold a separate representation of the world, and so a static structure external to them would be best. While maintaining this structure is reasonably simple, an effort should be made by the solution to attempt to explore regions of the environment that were previously undiscovered, or to revisit areas to keep an eye on enemy activity. For that, a \emph{Cartographer} agent could attempt to decide which areas are most worth visiting, and could distribute exploration tasks among Bot agents. The Cartographer would also be in charge of maintaining the world representation, and so use relevant percepts to update the structure. It would also service requests by other agents as to the state of some region of the environment. Finally, the agent could plan which resources are worth capturing or destroying, and assign agents to do either while avoiding assigning multiple agents to perform the same task. The agent would have several competing goals to achieve at any time, and should decide which to commit to. It is for this reason a Belief-Desires-Intentions architecture may be most fitting.
+A solution for this task should attempt to record the structure of the environment to be recalled when previously visible aspects of it are hidden. It would be wasteful for each Bot agent to hold a separate representation of the world, and so a static structure external to them would be best. While maintaining this structure is reasonably simple, an effort should be made by the solution to attempt to explore regions of the environment that were previously undiscovered, or to revisit areas to keep an eye on enemy activity. For that, a \emph{Cartographer} agent could attempt to decide which areas are most worth visiting, and could distribute exploration tasks among Bot agents. The Cartographer would also be in charge of maintaining the world representation, and so use relevant percepts to update the structure. It would also service requests by other agents as to the state of some region of the environment. Finally, the agent could plan which resources are worth capturing or destroying, and assign agents to do either while avoiding assigning multiple agents to perform the same task. The agent would have several competing goals to achieve at any time, and should decide which to commit to. It is for this reason a Belief-Desires-Intentions\cite{rao95} architecture may be most fitting.
 
 \paragraph{Tactician Agent}
-The remaining functionality not captured by the first two agent classes relate to interaction with enemy bots, and so a \emph{Tactician} agent may be constructed to deal with hindering, avoiding or eliminating opposing bots. While the Cartographer will retain the last known locations of enemy bots, the Tactician will query that information to be used when deliberating actions. 
+The remaining functionality not captured by the first two agent classes relate to interaction with enemy bots, and so a \emph{Tactician} agent may be constructed to deal with hindering, avoiding, or eliminating opposing bots. The Tactician will keep a record of the last known states of opposing bots, and also attempt to record how opponents belonging to each team react to specific situations and use that data to predict opponent actions when similar situations arise again.
 
 \section{Bot Agent (Subsumptive)}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.7\linewidth]{bot}
+  \includegraphics[width=0.8\linewidth]{bot}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Bot agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines.}
+    \caption{A breakdown of the Bot agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and communication with other agents as grey rectangles.}
   \end{minipage}
 \end{figure}
 
 \section{Cartographer Agent (BDI)}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.7\linewidth]{cartographer}
+  \includegraphics[width=0.8\linewidth]{cartographer}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Cartographer agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines.}
+    \caption{A breakdown of the Cartographer agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and communication with other agents as grey rectangles.}
   \end{minipage}
 \end{figure}
 
 \section{Tactician Agent (Hybrid)}
+
+\section{Final Notes}
 
 \begin{thebibliography}{9}
   \bibitem{norvig10}
@@ -212,7 +214,7 @@ The remaining functionality not captured by the first two agent classes relate t
     Volume 6,
     1990.
 
-  \bibitem{rao}
+  \bibitem{rao95}
     Anand Rao and Michael Georgeff,
     \emph{BDI Agents: From Theory to Practice}. \newline
     Proceedings of the First International Conference on Multi-Agent Systems,

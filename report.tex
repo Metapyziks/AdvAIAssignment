@@ -37,11 +37,11 @@ The task is a simple turn-based game within a tile based world, where two or mor
 \end{figure}
 
 \paragraph{Bots.}
-Bots have a \textbf{direction} property, which may be any one of the cardinal directions (\textbf{north}, \textbf{east}, \textbf{south}, or \textbf{west}). Each turn, each team decides a single action to perform with each bot belonging to them. This action may be to rotate the bot \textbf{left} or \textbf{right} (so a bot that was facing east which turns left will now face north), to \textbf{move} one tile in the direction it is currently facing (unless a wall is in the destination tile, in which case it does not move), or to \textbf{pass} and do nothing. After each team decides on a set of moves, all the bots commit to their assigned instruction simultaneously. If any two or more bots occupy the same tile they are removed from the world before the next turn. Also, a bot is removed if it is neighbouring another bot of a different team that is facing it.
+Bots have a \textbf{direction} property, which may be any one of the cardinal directions (\textbf{north}, \textbf{east}, \textbf{south}, or \textbf{west}). Every turn, each team decides a single action to perform with each bot belonging to them. This action may be to rotate the bot \textbf{left} or \textbf{right} (so a bot that was facing east which turns left will now face north), to \textbf{move} one tile in the direction it is currently facing (unless a wall is in the destination tile, in which case it does not move), or to \textbf{pass} and do nothing. After each team decides on a set of moves, all the bots commit to their assigned instruction simultaneously. If any two or more bots occupy the same tile they are removed from the world before the next turn. Also, a bot is removed if it is neighbouring another bot from a different team that is facing it.
 
 
 \paragraph{Resources.}
-Resources are items that appear at regular intervals in the world on randomly selected empty tiles. These are initially stationary, but if a bot appears on a neighbouring tile and faces the resource, the bot begins to \textbf{carry} the resource which will attempt to remain one tile in front of the carrying bot. If the carrying bot moves forward, the resource is \textbf{pushed} in the direction the bot moved by one tile. If the bot turns, the resource will move to whichever tile the bot is now facing. However, if the destination tile for the resource when either pushed or turned isn't vacant, the resource is removed from the world. Finally, if the resource is moved to a home tile, a new bot belonging to the home tile's corresponding team is created in its place.
+Resources are items that appear at regular intervals throughout the game on randomly selected empty tiles. These are initially stationary, but if a bot appears on a neighbouring tile and faces the resource, the bot begins to \textbf{carry} the resource which will attempt to remain one tile in front of the carrying bot. If the carrying bot moves forward, the resource is \textbf{pushed} in the direction the bot moved by one tile. If the bot turns, the resource will move to whichever tile the bot is now facing. However, if the destination tile for the resource when either pushed or turned isn't vacant, the resource is removed from the world. Finally, if the resource is moved to a home tile, a new bot belonging to the home tile's corresponding team is created in its place.
 
 \begin{figure}[ht]
   \centering
@@ -59,13 +59,13 @@ Resources are items that appear at regular intervals in the world on randomly se
 \end{figure}
 
 \paragraph{Solution Requirements and Interfaces.}
-Each team will have a single program that controls all of the bots on their team. Each program is initially given the dimensions of the world, number of teams, vision radius and allowed time per turn over standard input, and then at the start of each turn they provided with given the tile, resource and bot information as previously specified. Each team's program is then expected to produce an action for each bot over standard output, and upon the arrival of all instructions the game moves to the next turn. If any team's program fails to produce its set of actions before the allotted time has elapsed, all bots belonging to that team are eliminated and its program terminated. Each controller program may be implemented in any language that supports standard input and output operations.
+Each team will have a single program that controls all of the bots on their team. Each program is initially given the dimensions of the world, number of teams, vision radius and allowed time per turn over standard input, and then at the start of each turn they are provided with the information of bots, resources and tiles within the vision radius of a bot belonging to that team. Each team's program is then expected to produce an action for each bot over standard output, and upon the arrival of all instructions the game moves to the next turn. If any team's program fails to produce its set of actions before the allotted time has elapsed, all bots belonging to that team are eliminated and its program terminated. Each controller program may be implemented in any language that supports standard input and output operations.
 
 \paragraph{End Conditions and Goals.}
-The game lasts until either a predetermined turn limit is reached, or only bots belonging to one team remain. When the game ends, whichever team has the most remaining bots is declared the winner. The aim of the game is therefore to try and eliminate as many bots belonging to opposing teams as possible, while attempting to transport resources back to a home tile owned by your team and preventing other teams from doing so.
+The game lasts until either a predetermined turn limit is reached, or only bots belonging to one team remain. When the game ends, whichever team has the most remaining bots is declared the winner. The aim of the game is therefore to try to eliminate as many bots belonging to opposing teams as possible, while attempting to transport resources back to a home tile owned by your team and preventing other teams from doing the same.
 
 \subsection{Task Environment Identification}
-A useful initial step when designing any kind of system involving agents is to classify the environment in terms of how it is perceived by and reacts to agents, and to recognise exactly which behaviours should be encouraged in agents. These properties of the task are usually known as the \textbf{performance measure}, \textbf{environment properties}, \textbf{actuators} and \textbf{sensors}, or the \textbf{PEAS}, as discussed by Norvig and Russel in Artificial Intelligence: A Modern Approach\cite{norvig10}.
+A useful initial step when designing any kind of system involving agents is to classify the environment in terms of how it is perceived by and reacts to agents, and to recognise exactly which behaviours should be encouraged in agents. These properties of the task are usually known as the \textbf{performance measure}, \textbf{environment properties}, \textbf{actuators} and \textbf{sensors}, or the \textbf{PEAS}\cite{norvig10}.
 
 \paragraph{Performance Measure.}
 As this is a cooperative system (at least with respect to the bots belonging to one team), where the cooperating bots reside in the same program, performance may be measured for the team as a whole and not for each bot independently. Each team is attempting to maximise their number of active bots, while reducing the number of bots in opposing teams. This can be expressed as a ratio of active bots belonging to the measured team against the total number of active bots. However, this would suggest that a scenario where 5 bots are split between three teams $(A, B, C)$ using the distribution $(2, 2, 1)$ is equivalent to the distribution $(2, 3, 0)$ for team $A$. This should not be the case, as in the first scenario team $A$ is tied in first place with team $B$, but in the second scenario team $A$ is in second place and so should have a lower performance measure. One possible revised performance measure expression that resolves this is the following:
@@ -74,7 +74,7 @@ As this is a cooperative system (at least with respect to the bots belonging to 
   \centering
   \begin{minipage}{0.8\textwidth}
     $$
-      \text{performance}\left(\text{team}\right) \mapsto \frac
+      \text{performance}\left(\text{team}\right) = \frac
         {\left|\text{bots} \cap \text{team}\right|^2}
         {\sum_{t \in \text{teams}} \left|\text{bots} \cap \text{t}\right|^2}
     $$
@@ -83,7 +83,7 @@ As this is a cooperative system (at least with respect to the bots belonging to 
 \end{figure}
 
 \noindent
-This performance measure can differentiate between distributions of agents between teams where the original expression could not, so eliminating bots from a larger (and therefore more threatening) opposing team would provide more utility than doing so from a small one. Maximizing this score will increase the probability of winning the game, and in fact as soon as the performance score for a given team reaches $1.0$ that team must win, because all opposing agents have been eliminated.
+This performance measure can differentiate between distributions of agents between teams where the original expression could not, so eliminating bots from a larger (and therefore more threatening) opposing team would provide more utility than doing so from a small one. Maximizing this score will increase the probability of winning the game, and in fact as soon as the performance score for a given team reaches $1$ that team must win, because all opposing agents have been eliminated.
 
 \paragraph{Environment Properties.}
 Using the definitions provided by Russel and Norvig\cite{norvig10}, the environment is \textbf{partially observable} due to how only the contents of tiles near to bots are revealed to the team each bot belongs to. Naturally, it is a \textbf{multi-agent} system that is both \textbf{cooperative} (between agents belonging to the same team) and \textbf{competitive} (between agents belonging to distinct teams). The environment is slightly \textbf{stochastic} due to the random distribution of resources over time, and \textbf{uncertain} because of its stochastic nature, the presence of other agents, and because it is partially observable. Turns are \textbf{sequential} rather than episodic because each choice may affect every following one. Environment state and the intervals between percepts are \textbf{discrete} since the world is aligned to a grid and time is divided into turns, and the environment is mostly static except for the maximum turn time limit which renders it \textbf{semidynamic}. Finally, the outcomes of actions are \textbf{known} because they always produce an expected result for some localised aspect of the environment.
@@ -92,7 +92,7 @@ Using the definitions provided by Russel and Norvig\cite{norvig10}, the environm
 Each team can interact with the environment by selecting an action from the set of allowed actions for each of their bots. Percepts include several elements; first is a subset of previously undiscovered tiles revealing their state (either empty, a wall, or a home tile for a specified team), then the locations of visible bots along with their team and the direction they are facing, and finally the locations of visible resources.
 
 \section{Scenarios}
-A solution for this task should be able to act in the ways suggested in the following situations. Of course, two or more of the opportunities detailed here can crop up simultaneously, so the solution should evaluate which is expected to be more beneficial to pursue. Many more scenarios may emerge that do not fit into any of these templates, so the solution should account for unexpected events also. In the following scenarios, `bot' will refer to bots controlled by the solution program, and `opponents' will refer to the rest of the bots.
+A solution for this task should be able to act in the ways suggested in the following situations. Of course, two or more of the opportunities detailed here can crop up simultaneously in a manor where achieving only one of them is possible, so the solution should evaluate which is expected to be more beneficial to pursue. Many more scenarios may emerge that do not fit into any of these templates, so the solution should account for unexpected events also. In the following scenarios, `bot' will refer to bots controlled by the solution program, and `opponents' will refer to the rest of the bots.
 
 \newcommand{\scenario}[4]{
   \subsection{#1}
@@ -170,17 +170,17 @@ A solution for this task should be able to act in the ways suggested in the foll
 \vspace{5mm}
 
 \paragraph{Bot Agent.}
-The most obviously recognisable agent class in the system is the \textbf{Bot} agent. Each bot belonging to the team would have a separate Bot agent assigned to it, which would control self preservation of that bot and the following of any plans assigned to that bot by other agents. The Bot agent would delegate planning and most deliberation to other agents in the system, and mostly follow their instructions with some reactive mechanisms for avoiding danger. Because of this, a subsumptive architecture\cite{brooks90} would be a good fit for the overall design of the agent.
+The most obviously recognisable agent class in the system is the \textbf{Bot} agent. Each bot belonging to the team would have a separate Bot agent assigned to it, which would control self preservation for that bot and the following of any plans assigned to that bot by other agents. The Bot agent would delegate planning and goal deliberation to other agents in the system, and mostly follow their instructions with some reactive mechanisms for avoiding danger. Because of this, a subsumptive architecture\cite{brooks90} would be a good fit for the overall design of the agent as complex deliberation is not required.
 
 \paragraph{Cartographer Agent.}
 A solution for this task should attempt to record the structure of the environment to be recalled when previously visible aspects of it are hidden. It would be wasteful for each Bot agent to hold a separate representation of the world, and so a static structure external to them would be best. While maintaining this structure is reasonably simple, an effort should be made by the solution to attempt to explore regions of the environment that were previously undiscovered, or to revisit areas to keep an eye on enemy activity. For that, a \textbf{Cartographer} agent could attempt to decide which areas are most worth visiting, and could distribute exploration tasks among Bot agents. The Cartographer would also be in charge of maintaining the world representation, and so use relevant percepts to update the structure. It would also service requests by other agents as to the state of some region of the environment. Finally, the agent could plan which resources are worth capturing or destroying, and assign agents to do either while avoiding assigning multiple agents to perform the same task. The agent would have several competing goals to achieve at any time, and should decide which to commit to. It is for this reason a Belief-Desires-Intentions\cite{rao95} architecture may be most fitting, as a subsumptive architecture is more suitable for situations where only one goal is attempted at a time.
 
 \paragraph{Tactician Agent.}
-The remaining functionality not captured by the first two agent classes relate to interaction with enemy bots, and so a \textbf{Tactician} agent may be constructed to deal with hindering, avoiding, or eliminating opposing bots. The Tactician will keep a record of the last known states of opposing bots, and also attempt to record how opponents belonging to each team react to specific situations and use that data to predict opponent actions when similar situations arise again. This agent should be able to formulate overarching plans involving many bots from the controlled team, but also respond to minor situations involving a small number of bots in a more reactive manor. A hybrid architecture with both subsumptive and BDI-oriented aspects may therefore be a useful design to use for this agent, as a purely subsumptive architecture is far too limited to account for multiple simultaneous conflict situations, but has its merits for the more reactive conflict instances.
+The remaining functionality not captured by the first two agent classes relate to interaction with enemy bots, and so a \textbf{Tactician} agent may be constructed to deal with hindering, avoiding, or eliminating opposing bots. The Tactician will keep a record of the last known states of opposing bots, and also attempt to record how opponents belonging to each team react to specific situations and use that data to predict opponent actions when similar situations arise again. This agent should be able to formulate overarching plans involving many bots from the controlled team, but also respond to minor situations involving a small number of bots in a more reactive manor. A hybrid architecture with both subsumptive and BDI-oriented aspects may therefore be a useful design to use for this agent, as a purely subsumptive architecture is far too limited to account for multiple simultaneous conflict situations, but has its merits for the more reactive conflict instances that may occur.
 
 \section{Bot Agent (Subsumptive)}
 
-The Bot agent is the only agent that directly influences the environment. This means instances of this agent class will need to decide between acting on their own internal motives and motives of other agents that request some behaviour of them. These behaviours are described in the above diagram, and can be divided into two main behavioural groups; opponent interaction and resource retrieval / destruction.
+The Bot agent is the only agent that directly influences the environment. This means instances of this agent class will need to decide between acting on their own internal motives and motives of other agents that request some behaviour of them. These behaviours are described in the following diagram, and can be divided into two main behavioural groups: opponent interaction and resource retrieval / destruction.
 
 Naturally, the opponent interaction behaviours are tied to the functions provided by the Tactician agent. These behaviours are the avoidance of elimination threats, attempted elimination of opponents, and the assistance of allied bots that are under threat. Self preservation behaviours should not be implemented as a low level layer of the subsumption stack because the Tactician may decide to commit this bot to a potentially risky move in the process of carrying out a battle manoeuvre.
 
@@ -188,7 +188,7 @@ Naturally, the opponent interaction behaviours are tied to the functions provide
   \centering
   \includegraphics[width=0.8\linewidth]{bot}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Bot agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and communication with other agents as grey rectangles.}
+    \caption{A breakdown of the Bot agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and functionalities tied directly to other agents as grey rectangles.}
   \end{minipage}
 \end{figure}
 
@@ -222,7 +222,7 @@ The Cartographer involves a great deal more complexity than the Bot agent, and i
   \centering
   \includegraphics[width=0.8\linewidth]{cartographer}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Cartographer agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and communication with other agents as grey rectangles.}
+    \caption{A breakdown of the Cartographer agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and functionalities tied directly to other agents as grey rectangles.}
   \end{minipage}
 \end{figure}
 
@@ -248,7 +248,7 @@ The final proposed agent, and possibly the most difficult to implement, is the o
   \centering
   \includegraphics[width=0.8\linewidth]{tactician}
   \begin{minipage}[t]{0.8\textwidth}
-    \caption{A breakdown of the Tactician agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and communication with other agents as grey rectangles.}
+    \caption{A breakdown of the Tactician agent's main functions into sub-functions, with possible conflicts of interest represented by dashed lines and functionalities tied directly to other agents as grey rectangles.}
   \end{minipage}
 \end{figure}
 

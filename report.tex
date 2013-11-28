@@ -254,7 +254,7 @@ The final proposed agent, and possibly the most difficult to implement, is the o
 
 After conflict instances have been distinguished, they can be tackled independently using an initially subsumptive approach. The layers with higher would be ones that recognise trivial situations resolvable in a single turn, such as avoiding a possible attack from a single opponent, or attacking an opponent in a situation with guaranteed success. However, the last layer will implement a BDI-oriented design for the recognition of and planning for more complex goals that require several turns of execution, similar to the Cartographer's structure. Delegating simpler situations to a subsumptive architecture would mean that a large number of conflict instances can be resolved without extensive processing by a BDI approach, which would assist in keeping the solution program's execution time within the enforced turn time limit.
 
-\section{Final Notes}
+An alternative approach to using a subsumptive / BDI hybrid design for this agent would be a Monte Carlo algorithm similar to Br\:{u}gmann's method used in his computer Go player\cite{brugmann93}. The initial step of determining separate conflict instances would be identical, but for each instance many series of randomly selected moves (for both the bots controlled by the program and opponent bots) would be emulated, with the final outcome counting towards the estimated utility of the first move in that particular sequence. The algorithm would have a fixed time limit for execution, and after that time had elapsed whichever initial set of moves has the highest estimated utility is chosen. This has a few benefits; it is far simpler to implement, guaranteed to finish execution within a given time limit, and may stumble upon an optimal set of moves that would not be apparent to a more deliberate BDI method. However, the quality of the outcome is not guaranteed in the way that the hybrid approach would at least be above some consistent minimum expected utility. This would be another case where testing the two alternatives against each other would be a useful endeavour.
 
 \begin{thebibliography}{9}
   \bibitem{norvig10}
@@ -289,6 +289,12 @@ After conflict instances have been distinguished, they can be tackled independen
     IEEE Transactions on Systems Science and Cybernetics,
     Volume SSC-4,
     1968.
+
+  \bibitem{brugmann93}
+    B. Br\:{u}gmann,
+    \emph{Monte Carlo Go}. \newline
+    Max-Planck Institute of Physics,
+    1993.
 \end{thebibliography}
 
 \end{document}
